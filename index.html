@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chores</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --blue-deep:   #0a1628;
+      --blue-mid:    #0d2244;
+      --blue-card:   #102a52;
+      --blue-border: #1a4080;
+      --yellow:      #f5c842;
+      --yellow-soft: #ffe27a;
+      --white:       #e8f0fe;
+      --action-bg:   #1b3a6b;
+      --clean-bg:    #0e2a4a;
+      --today-ring:  #f5c842;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--blue-deep);
+      color: var(--white);
+      font-family: 'Nunito', sans-serif;
+      min-height: 100vh;
+      padding-bottom: 3rem;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #0d2244 0%, #163566 100%);
+      border-bottom: 3px solid var(--yellow);
+      padding: 1.4rem 1rem 1rem;
+      text-align: center;
+    }
+    header h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3rem;
+      letter-spacing: 0.12em;
+      color: var(--yellow);
+      line-height: 1;
+    }
+    header p.subtitle {
+      font-size: 0.85rem;
+      color: var(--yellow-soft);
+      opacity: 0.8;
+      margin-top: 0.2rem;
+    }
+
+    /* ── Week card ── */
+    .week-card {
+      background: var(--blue-card);
+      border: 1.5px solid var(--blue-border);
+      border-radius: 14px;
+      margin: 1rem 0.75rem;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+    }
+    .week-card.current-week {
+      border-color: var(--yellow);
+      box-shadow: 0 0 0 2px var(--yellow), 0 4px 24px rgba(0,0,0,0.4);
+    }
+
+    .week-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.8rem 1rem;
+      background: linear-gradient(90deg, #163566 0%, #1a4080 100%);
+      gap: 0.5rem;
+    }
+    .week-header .badge-current {
+      background: var(--yellow);
+      color: var(--blue-deep);
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 0.15rem 0.5rem;
+      border-radius: 99px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      flex-shrink: 0;
+    }
+    .week-header .week-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      color: var(--yellow);
+      letter-spacing: 0.06em;
+    }
+    .week-header .week-name {
+      font-size: 0.78rem;
+      color: var(--yellow-soft);
+      opacity: 0.9;
+    }
+
+    /* ── Assignment rows (replaces day grid) ── */
+    .assignments {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border-top: 1px solid var(--blue-border);
+    }
+
+    .assignment-row {
+      display: flex;
+      align-items: stretch;
+      border-bottom: 1px solid var(--blue-border);
+    }
+    .assignment-row:last-child { border-bottom: none; }
+
+    .assignment-row.action { background: rgba(245,200,66,0.06); }
+    .assignment-row.clean  { background: rgba(90,171,255,0.05); }
+
+    .assign-type {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem 0.9rem;
+      min-width: 90px;
+      border-right: 1px solid var(--blue-border);
+      gap: 0.3rem;
+    }
+    .assign-type .type-icon {
+      font-size: 1.6rem;
+      line-height: 1;
+    }
+    .assign-type .type-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+    }
+    .assignment-row.action .type-label { color: var(--yellow); }
+    .assignment-row.clean  .type-label { color: #8cc8ff; }
+
+    .assign-body {
+      flex: 1;
+      padding: 0.9rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+
+    .assign-people {
+      font-size: 1.1rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .assignment-row.action .assign-people { color: var(--yellow); }
+    .assignment-row.clean  .assign-people { color: #8cc8ff; }
+
+    .assign-chores {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+    .chore-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 99px;
+    }
+    .chore-tag.action {
+      background: rgba(245,200,66,0.15);
+      border: 1px solid rgba(245,200,66,0.35);
+      color: var(--yellow-soft);
+    }
+    .chore-tag.clean {
+      background: rgba(90,171,255,0.15);
+      border: 1px solid rgba(90,171,255,0.35);
+      color: #9cd2ff;
+    }
+
+    /* ── Legend ── */
+    .legend {
+      margin: 0.5rem 0.75rem;
+      background: var(--blue-card);
+      border: 1px solid var(--blue-border);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+    .legend h3 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.1rem;
+      letter-spacing: 0.08em;
+      color: var(--yellow);
+      margin-bottom: 0.6rem;
+    }
+    .legend-group {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+      align-items: flex-start;
+    }
+    .legend-label {
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding-top: 0.1rem;
+    }
+    .legend-label.action { color: var(--yellow); }
+    .legend-label.clean  { color: #8cc8ff; }
+    .legend-chores {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+    }
+    .legend-chore {
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: 99px;
+    }
+    .legend-chore.action {
+      background: rgba(245,200,66,0.15);
+      border: 1px solid rgba(245,200,66,0.4);
+      color: var(--yellow-soft);
+    }
+    .legend-chore.clean {
+      background: rgba(90,171,255,0.15);
+      border: 1px solid rgba(90,171,255,0.4);
+      color: #9cd2ff;
+    }
+
+    /* ── Download link ── */
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--yellow);
+      color: var(--blue-deep);
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 0.85rem;
+      padding: 0.7rem 1.4rem;
+      border-radius: 99px;
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      box-shadow: 0 3px 12px rgba(245,200,66,0.3);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .download-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(245,200,66,0.45); }
+    .download-btn svg { width: 16px; height: 16px; fill: var(--blue-deep); flex-shrink: 0; }
+
+    /* ── Buttons row ── */
+    .download-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+      margin: 1.2rem 0.75rem 0.5rem;
+    }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 12, 30, 0.82);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--blue-card);
+      border: 1.5px solid var(--blue-border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      overflow: hidden;
+    }
+    .modal-header {
+      background: linear-gradient(90deg, #163566 0%, #1a4080 100%);
+      border-bottom: 2px solid var(--yellow);
+      padding: 1rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-header h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: 0.1em;
+      color: var(--yellow);
+    }
+    .modal-body {
+      overflow-y: auto;
+      padding: 1rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .config-row {
+      background: var(--blue-mid);
+      border: 1px solid var(--blue-border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .config-row-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 0.9rem;
+      background: linear-gradient(90deg, #0f2040 0%, #163060 100%);
+      border-bottom: 1px solid var(--blue-border);
+    }
+    .config-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.15rem;
+      letter-spacing: 0.08em;
+      color: var(--yellow);
+    }
+    .config-type-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding: 0.15rem 0.55rem;
+      border-radius: 99px;
+    }
+    .config-type-badge.normal {
+      background: rgba(245,200,66,0.15);
+      border: 1px solid rgba(245,200,66,0.4);
+      color: var(--yellow-soft);
+    }
+    .config-type-badge.week5 {
+      background: rgba(90,171,255,0.15);
+      border: 1px solid rgba(90,171,255,0.4);
+      color: #9cd2ff;
+    }
+    .config-groups {
+      padding: 0.65rem 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+    .config-group-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.83rem;
+    }
+    .group-tag {
+      font-size: 0.62rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding: 0.12rem 0.45rem;
+      border-radius: 5px;
+      flex-shrink: 0;
+      min-width: 54px;
+      text-align: center;
+    }
+    .group-tag.a { background: rgba(245,200,66,0.2); color: var(--yellow); }
+    .group-tag.b { background: rgba(90,171,255,0.2); color: #8cc8ff; }
+    .group-members { font-weight: 700; color: var(--white); flex: 1; }
+    .group-task {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.1rem 0.45rem;
+      border-radius: 99px;
+      flex-shrink: 0;
+    }
+    .group-task.action {
+      background: rgba(245,200,66,0.12);
+      border: 1px solid rgba(245,200,66,0.3);
+      color: var(--yellow-soft);
+    }
+    .group-task.clean {
+      background: rgba(90,171,255,0.12);
+      border: 1px solid rgba(90,171,255,0.3);
+      color: #9cd2ff;
+    }
+    .modal-footer {
+      padding: 0.9rem 1.2rem;
+      border-top: 1px solid var(--blue-border);
+      display: flex;
+      justify-content: flex-end;
+    }
+    .btn-ok {
+      background: var(--yellow);
+      color: var(--blue-deep);
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 0.9rem;
+      padding: 0.6rem 2rem;
+      border-radius: 99px;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      box-shadow: 0 3px 10px rgba(245,200,66,0.3);
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
+    .btn-ok:hover { transform: translateY(-2px); box-shadow: 0 5px 16px rgba(245,200,66,0.45); }
+
+    /* ── Responsive tweaks ── */
+    @media(min-width: 640px) {
+      .chore-tag { font-size: 0.68rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Chores</h1>
+  <p class="subtitle">Weekly household schedule</p>
+</header>
+
+<div id="app"></div>
+
+<div class="legend">
+  <h3>Legend</h3>
+  <div class="legend-group">
+    <span class="legend-label action">⚡ Action</span>
+    <div class="legend-chores">
+      <span class="legend-chore action">Cooking</span>
+      <span class="legend-chore action">Dog Poop</span>
+      <span class="legend-chore action">Sweep</span>
+      <span class="legend-chore action">Mop</span>
+      <span class="legend-chore action">Washing</span>
+    </div>
+  </div>
+  <div class="legend-group">
+    <span class="legend-label clean">🧹 Cleaning</span>
+    <div class="legend-chores">
+      <span class="legend-chore clean">Clean Kitchen</span>
+      <span class="legend-chore clean">Clean Lounge</span>
+    </div>
+  </div>
+</div>
+
+<div class="download-wrap">
+  <a href="#" class="download-btn" id="xlsxBtn">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+    Download Year Schedule (.xlsx)
+  </a>
+  <a href="#" class="download-btn" id="infoBtn" style="background:transparent;border:2px solid var(--yellow);color:var(--yellow);box-shadow:none;">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="fill:var(--yellow);"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+    Week Definitions
+  </a>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Week Definitions</h2>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-ok" id="modalOk">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- SheetJS for client-side Excel export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ─── Setup Data ───────────────────────────────────────────────────────────────
+const WEEK_CONFIGS = {
+  WeekConfigs: [
+    { Id: 1, Type: 1, Name: "Week A", "Group A": ["Kelly","Samuel"], "Group B": ["David","Jordan"] },
+    { Id: 2, Type: 1, Name: "Week B", "Group A": ["David","Jordan"], "Group B": ["Kelly","Samuel"] },
+    { Id: 3, Type: 1, Name: "Week C", "Group A": ["Kelly","Jordan"], "Group B": ["David","Samuel"] },
+    { Id: 4, Type: 1, Name: "Week D", "Group A": ["David","Samuel"], "Group B": ["Kelly","Jordan"] },
+    { Id: 5, Type: 2, Name: "Week E", "Group A": ["Kelly","David"],  "Group B": ["Jordan","Samuel"] },
+    { Id: 6, Type: 2, Name: "Week F", "Group A": ["Jordan","Samuel"],"Group B": ["Kelly","David"] }
+  ]
+};
+
+const ACTION_CHORES  = ["Cooking","Dog Poop","Sweep","Mop","Washing"];
+const CLEAN_CHORES   = ["Clean Kitchen","Clean Lounge"];
+const EPOCH          = new Date(2026, 0, 1); // 1 Jan 2026 — Week 1 (Monday)
+const MONTH_NAMES    = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+// ─── Core Calculation ─────────────────────────────────────────────────────────
+/**
+ * Given a date, compute all weeks from 1 Jan 2026 up to endDate.
+ * @param {Date} endDate  – last date to include (defaults to last day of current month)
+ * @returns {Array}  array of week objects
+ */
+function computeWeeks(endDate) {
+  if (!endDate) {
+    const now = new Date();
+    endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0); // last day of month
+  }
+
+  const weeks = [];
+  let cursor = new Date(EPOCH); // always a Monday (1 Jan 2026 is a Thursday — adjust to that Monday)
+  // Find the Monday on or before 1 Jan 2026
+  // 1 Jan 2026 is a Thursday (day 4, where Mon=1). Move back to Monday.
+  const epochDay = EPOCH.getDay(); // 0=Sun,1=Mon,...
+  const daysToMon = epochDay === 0 ? -6 : 1 - epochDay;
+  cursor = new Date(EPOCH);
+  cursor.setDate(cursor.getDate() + daysToMon); // This gives the Monday of the epoch week
+
+  // Track alternating 5th-week counter per month (for ids 5/6)
+  // key = "YYYY-M", value = count of extra weeks seen
+  const extraWeekCount = {}; // running total of type-2 weeks ever used
+
+  let type2Counter = 0; // alternates: 0 → use Id 5, 1 → use Id 6
+
+  let currentMonth = -1;
+  let weekIdInMonth = 0;
+
+  while (cursor <= endDate) {
+    const monday = new Date(cursor);
+    const month = monday.getMonth();
+    const year  = monday.getFullYear();
+
+    // Reset week counter on new month
+    if (month !== currentMonth) {
+      currentMonth = month;
+      weekIdInMonth = 0;
+    }
+    weekIdInMonth++;
+
+    let configId;
+    if (weekIdInMonth <= 4) {
+      configId = weekIdInMonth; // 1..4
+    } else {
+      // 5th (or 6th) week of a month → alternate between Id 5 and Id 6
+      configId = (type2Counter % 2 === 0) ? 5 : 6;
+      type2Counter++;
+    }
+
+    const config = WEEK_CONFIGS.WeekConfigs.find(w => w.Id === configId);
+
+    // Sunday of this week
+    const sunday = new Date(monday);
+    sunday.setDate(sunday.getDate() + 6);
+
+    weeks.push({ monday, sunday, year, month, weekIdInMonth, configId, config });
+
+    // Advance to next Monday
+    cursor = new Date(monday);
+    cursor.setDate(cursor.getDate() + 7);
+  }
+
+  return weeks;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function fmtShort(date) {
+  return `${date.getDate()} ${MONTH_NAMES[date.getMonth()]}`;
+}
+
+function isToday(date) {
+  const t = new Date();
+  return date.getFullYear() === t.getFullYear() &&
+         date.getMonth()    === t.getMonth()    &&
+         date.getDate()     === t.getDate();
+}
+
+function getMondayOfDate(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+function renderWeekCard(week, isCurrent) {
+  const { monday, sunday, config } = week;
+  const groupA = config["Group A"];
+  const groupB = config["Group B"];
+
+  const currentBadge = isCurrent
+    ? `<span class="badge-current">This Week</span>` : '';
+
+  const makeRow = (people, type) => {
+    const icon  = type === 'action' ? '&#9889;' : '&#129529;';
+    const label = type === 'action' ? 'Action' : 'Cleaning';
+    const chores = type === 'action' ? ACTION_CHORES : CLEAN_CHORES;
+    const choreTags = chores.map(c =>
+      `<span class="chore-tag ${type}">${c}</span>`
+    ).join('');
+    const names = people.join(' &amp; ');
+    return `<div class="assignment-row ${type}">
+      <div class="assign-type">
+        <span class="type-icon">${icon}</span>
+        <span class="type-label">${label}</span>
+      </div>
+      <div class="assign-body">
+        <div class="assign-people">${names}</div>
+        <div class="assign-chores">${choreTags}</div>
+      </div>
+    </div>`;
+  };
+
+  return `<div class="week-card${isCurrent ? ' current-week' : ''}">
+    <div class="week-header">
+      ${currentBadge}
+      <div>
+        <div class="week-label">${fmtShort(monday)} &#8212; ${config.Name}</div>
+        <div class="week-name">${fmtShort(monday)} to ${fmtShort(sunday)}</div>
+      </div>
+    </div>
+    <div class="assignments">
+      ${makeRow(groupA, 'action')}
+      ${makeRow(groupB, 'clean')}
+    </div>
+  </div>`;
+}
+
+function renderApp() {
+  const now    = new Date();
+  const todayMonday = getMondayOfDate(now);
+
+  // Show current week + 1 following week by default
+  // end = end of next week's Sunday
+  const endDate = new Date(todayMonday);
+  endDate.setDate(endDate.getDate() + 13); // 2 weeks total
+
+  const allWeeks = computeWeeks(endDate);
+
+  // find current & next
+  const currentIdx = allWeeks.findIndex(w => {
+    return w.monday.getTime() === todayMonday.getTime();
+  });
+
+  let displayWeeks;
+  if (currentIdx === -1) {
+    displayWeeks = allWeeks.slice(-2);
+  } else {
+    displayWeeks = allWeeks.slice(currentIdx, currentIdx + 2);
+  }
+
+  const html = displayWeeks.map((w, i) => renderWeekCard(w, i === 0)).join('');
+  document.getElementById('app').innerHTML = html;
+}
+
+// ─── Excel Export ─────────────────────────────────────────────────────────────
+document.getElementById('xlsxBtn').addEventListener('click', function(e) {
+  e.preventDefault();
+
+  const year   = new Date().getFullYear();
+  const endDate = new Date(year, 11, 31); // 31 Dec of current year
+  const weeks  = computeWeeks(endDate).filter(w => w.year === year);
+
+  const rows = [
+    ["Week #", "Week Name", "Start (Mon)", "End (Sun)", "Group A Members", "Group A Task", "Group B Members", "Group B Task"]
+  ];
+
+  weeks.forEach((w, idx) => {
+    const groupA = w.config["Group A"].join(", ");
+    const groupB = w.config["Group B"].join(", ");
+    rows.push([
+      idx + 1,
+      w.config.Name,
+      fmtShort(w.monday) + " " + w.monday.getFullYear(),
+      fmtShort(w.sunday) + " " + w.sunday.getFullYear(),
+      groupA,
+      "Action (Cooking, Dog Poop, Sweep, Mop, Washing)",
+      groupB,
+      "Cleaning (Clean Kitchen, Clean Lounge)"
+    ]);
+  });
+
+  const ws   = XLSX.utils.aoa_to_sheet(rows);
+  // Column widths
+  ws['!cols'] = [
+    {wch:8},{wch:10},{wch:14},{wch:14},{wch:22},{wch:44},{wch:22},{wch:38}
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Chores " + year);
+  XLSX.writeFile(wb, `chores_schedule_${year}.xlsx`);
+});
+
+// ─── Modal ────────────────────────────────────────────────────────────────────
+function buildModalContent() {
+  const typeLabel = t => t === 1 ? 'Normal' : 'Week 5';
+  const typeCls   = t => t === 1 ? 'normal' : 'week5';
+
+  return WEEK_CONFIGS.WeekConfigs.map(cfg => {
+    const gA = cfg["Group A"].join(' &amp; ');
+    const gB = cfg["Group B"].join(' &amp; ');
+    return `<div class="config-row">
+      <div class="config-row-header">
+        <span class="config-name">${cfg.Name}</span>
+        <span class="config-type-badge ${typeCls(cfg.Type)}">${typeLabel(cfg.Type)}</span>
+      </div>
+      <div class="config-groups">
+        <div class="config-group-row">
+          <span class="group-tag a">Group A</span>
+          <span class="group-members">${gA}</span>
+          <span class="group-task action">&#9889; Action</span>
+        </div>
+        <div class="config-group-row">
+          <span class="group-tag b">Group B</span>
+          <span class="group-members">${gB}</span>
+          <span class="group-task clean">&#129529; Cleaning</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('infoBtn').addEventListener('click', function(e) {
+  e.preventDefault();
+  document.getElementById('modalBody').innerHTML = buildModalContent();
+  document.getElementById('modalOverlay').classList.add('open');
+});
+
+document.getElementById('modalOk').addEventListener('click', function() {
+  document.getElementById('modalOverlay').classList.remove('open');
+});
+
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+renderApp();
+</script>
+</body>
+</html>
