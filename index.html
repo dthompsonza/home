@@ -119,7 +119,8 @@
       justify-content: center;
       align-items: center;
       padding: 1rem 0.9rem;
-      min-width: 90px;
+      width: 110px;
+      flex-shrink: 0;
       border-right: 1px solid var(--blue-border);
       gap: 0.3rem;
     }
@@ -275,7 +276,7 @@
       border-radius: 16px;
       width: 100%;
       max-width: 480px;
-      max-height: 88vh;
+      max-height: 92vh;
       display: flex;
       flex-direction: column;
       box-shadow: 0 20px 60px rgba(0,0,0,0.6);
@@ -297,6 +298,7 @@
     }
     .modal-body {
       overflow-y: auto;
+      flex: 1 1 auto;
       padding: 1rem 1.2rem;
       display: flex;
       flex-direction: column;
@@ -306,7 +308,6 @@
       background: var(--blue-mid);
       border: 1px solid var(--blue-border);
       border-radius: 10px;
-      overflow: hidden;
     }
     .config-row-header {
       display: flex;
@@ -423,7 +424,7 @@
 <div class="legend">
   <h3>Legend</h3>
   <div class="legend-group">
-    <span class="legend-label action">⚡ Action</span>
+    <span class="legend-label action">🔴 Red Group</span>
     <div class="legend-chores">
       <span class="legend-chore action">Cooking</span>
       <span class="legend-chore action">Dog Poop</span>
@@ -433,7 +434,7 @@
     </div>
   </div>
   <div class="legend-group">
-    <span class="legend-label clean">🧹 Cleaning</span>
+    <span class="legend-label clean">🟢 Green Group</span>
     <div class="legend-chores">
       <span class="legend-chore clean">Clean Kitchen</span>
       <span class="legend-chore clean">Clean Lounge</span>
@@ -445,6 +446,10 @@
   <a href="#" class="download-btn" id="xlsxBtn">
     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
     Download Year Schedule (.xlsx)
+  </a>
+  <a href="#" class="download-btn" id="monthBtn" style="background:transparent;border:2px solid #8cc8ff;color:#8cc8ff;box-shadow:none;">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="fill:#8cc8ff;"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H5V8h14v13zM7 10h5v5H7z"/></svg>
+    Download This Month (.xlsx)
   </a>
   <a href="#" class="download-btn" id="infoBtn" style="background:transparent;border:2px solid var(--yellow);color:var(--yellow);box-shadow:none;">
     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="fill:var(--yellow);"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
@@ -583,8 +588,8 @@ function renderWeekCard(week, isCurrent) {
     ? `<span class="badge-current">This Week</span>` : '';
 
   const makeRow = (people, type) => {
-    const icon  = type === 'action' ? '&#9889;' : '&#129529;';
-    const label = type === 'action' ? 'Action' : 'Cleaning';
+    const icon  = type === 'action' ? '&#128308;' : '&#128994;';
+    const label = type === 'action' ? 'Red' : 'Green';
     const chores = type === 'action' ? ACTION_CHORES : CLEAN_CHORES;
     const choreTags = chores.map(c =>
       `<span class="chore-tag ${type}">${c}</span>`
@@ -653,7 +658,7 @@ document.getElementById('xlsxBtn').addEventListener('click', function(e) {
   const weeks  = computeWeeks(endDate).filter(w => w.year === year);
 
   const rows = [
-    ["Week #", "Week Name", "Start (Mon)", "End (Sun)", "Group A Members", "Group A Task", "Group B Members", "Group B Task"]
+    ["Week #", "Week Name", "Start (Mon)", "End (Sun)", "Red Group Members", "Red Group Tasks", "Green Group Members", "Green Group Tasks"]
   ];
 
   weeks.forEach((w, idx) => {
@@ -665,9 +670,9 @@ document.getElementById('xlsxBtn').addEventListener('click', function(e) {
       fmtShort(w.monday) + " " + w.monday.getFullYear(),
       fmtShort(w.sunday) + " " + w.sunday.getFullYear(),
       groupA,
-      "Action (Cooking, Dog Poop, Sweep, Mop, Washing)",
+      "Red Group (Cooking, Dog Poop, Sweep, Mop, Washing)",
       groupB,
-      "Cleaning (Clean Kitchen, Clean Lounge)"
+      "Green Group (Clean Kitchen, Clean Lounge)"
     ]);
   });
 
@@ -681,9 +686,50 @@ document.getElementById('xlsxBtn').addEventListener('click', function(e) {
   XLSX.writeFile(wb, `chores_schedule_${year}.xlsx`);
 });
 
+// ─── Monthly Excel Export ────────────────────────────────────────────────────
+document.getElementById('monthBtn').addEventListener('click', function(e) {
+  e.preventDefault();
+
+  const now    = new Date();
+  const year   = now.getFullYear();
+  const month  = now.getMonth();
+  const endDate = new Date(year, month + 1, 0); // last day of current month
+  const weeks  = computeWeeks(endDate).filter(w => w.year === year && w.month === month);
+  const monthName = MONTH_NAMES[month];
+
+  const rows = [
+    ["Week in Month", "Week Name", "Type", "Start (Mon)", "End (Sun)", "Red Group Members", "Red Group Tasks", "Green Group Members", "Green Group Tasks"]
+  ];
+
+  weeks.forEach((w) => {
+    const typeLabel = w.config.Type === 1 ? 'Normal' : 'Bonus Week';
+    const redGroup  = w.config["Group A"].join(", ");
+    const greenGroup = w.config["Group B"].join(", ");
+    rows.push([
+      `Week ${w.weekIdInMonth}`,
+      w.config.Name,
+      typeLabel,
+      fmtShort(w.monday) + " " + w.monday.getFullYear(),
+      fmtShort(w.sunday) + " " + w.sunday.getFullYear(),
+      redGroup,
+      "Cooking, Dog Poop, Sweep, Mop, Washing",
+      greenGroup,
+      "Clean Kitchen, Clean Lounge"
+    ]);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [
+    {wch:12},{wch:10},{wch:12},{wch:14},{wch:14},{wch:22},{wch:36},{wch:22},{wch:28}
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, `${monthName} ${year}`);
+  XLSX.writeFile(wb, `chores_${monthName.toLowerCase()}_${year}.xlsx`);
+});
+
 // ─── Modal ────────────────────────────────────────────────────────────────────
 function buildModalContent() {
-  const typeLabel = t => t === 1 ? 'Normal' : 'Week 5';
+  const typeLabel = t => t === 1 ? 'Normal' : 'Bonus Week';
   const typeCls   = t => t === 1 ? 'normal' : 'week5';
 
   return WEEK_CONFIGS.WeekConfigs.map(cfg => {
@@ -698,12 +744,12 @@ function buildModalContent() {
         <div class="config-group-row">
           <span class="group-tag a">Group A</span>
           <span class="group-members">${gA}</span>
-          <span class="group-task action">&#9889; Action</span>
+          <span class="group-task action">&#128308; Red Group</span>
         </div>
         <div class="config-group-row">
           <span class="group-tag b">Group B</span>
           <span class="group-members">${gB}</span>
-          <span class="group-task clean">&#129529; Cleaning</span>
+          <span class="group-task clean">&#129001; Green Group</span>
         </div>
       </div>
     </div>`;
